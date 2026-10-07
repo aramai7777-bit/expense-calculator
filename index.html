@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مصاريفي الشهرية | Eng: Anas Mohamed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #e9efed;
+  --surface: #ffffff;
+  --ink: #16302b;
+  --muted: #5b7069;
+  --line: #d3dedb;
+  --brand: #14504a;
+  --brand-dark: #0d3a35;
+  --income: #1f7a5c;
+  --income-bg: #dff1e9;
+  --expense: #b83f28;
+  --expense-bg: #f8e3de;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.7;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid #3b9c8f;
+  outline-offset: 2px;
+}
+
+.topbar {
+  background: var(--brand);
+  color: #fff;
+}
+
+.topbar__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.author {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  direction: ltr;
+}
+
+.month-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.month-picker input {
+  font: inherit;
+  color: #fff;
+  background: var(--brand-dark);
+  border: 1px solid #2f6f68;
+  border-radius: 8px;
+  padding: 4px 8px;
+  color-scheme: dark;
+}
+
+.page {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 20px 40px;
+  flex: 1;
+}
+
+.hero { margin-bottom: 22px; }
+
+.hero h1 {
+  font-size: clamp(1.9rem, 5vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.hero p {
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat__label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.stat__value {
+  font-size: clamp(1.15rem, 3.4vw, 1.6rem);
+  font-weight: 700;
+}
+
+.stat__value--income { color: var(--income); }
+.stat__value--expense { color: var(--expense); }
+
+.stat--balance.is-positive { background: var(--income-bg); border-color: #b7dccb; }
+.stat--balance.is-positive .stat__value { color: var(--income); }
+.stat--balance.is-negative { background: var(--expense-bg); border-color: #efc4ba; }
+.stat--balance.is-negative .stat__value { color: var(--expense); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.panel h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.panel__head h2 { margin-bottom: 0; }
+
+.tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ---------- Form ---------- */
+
+.toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle label {
+  text-align: center;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+#typeExpense:checked + label {
+  background: var(--expense-bg);
+  border-color: #efc4ba;
+  color: var(--expense);
+}
+
+#typeIncome:checked + label {
+  background: var(--income-bg);
+  border-color: #b7dccb;
+  color: var(--income);
+}
+
+.toggle input:focus-visible + label {
+  outline: 3px solid #3b9c8f;
+  outline-offset: 2px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  font: inherit;
+  font-weight: 400;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+input.invalid { border-color: var(--expense); }
+
+.error {
+  color: var(--expense);
+  font-size: 0.8rem;
+  font-weight: 400;
+  min-height: 1.2em;
+}
+
+.btn {
+  font: inherit;
+  font-weight: 700;
+  width: 100%;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn:hover { background: var(--brand-dark); }
+.btn:active { transform: scale(0.98); }
+
+.btn--ghost {
+  width: auto;
+  background: transparent;
+  color: var(--brand);
+  border: 1px solid var(--line);
+  font-weight: 500;
+  padding: 7px 12px;
+  font-size: 0.9rem;
+}
+
+.btn--ghost:hover { background: var(--bg); }
+
+/* ---------- Chart ---------- */
+
+.chart-wrap {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.donut {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: var(--line);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.donut::after {
+  content: "";
+  position: absolute;
+  inset: 28px;
+  background: var(--surface);
+  border-radius: 50%;
+}
+
+.legend {
+  list-style: none;
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.legend .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-inline-end: 8px;
+}
+
+.legend .amt { color: var(--muted); }
+
+.empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 10px 0;
+}
+
+/* ---------- Table ---------- */
+
+.table-scroll { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th, td {
+  text-align: start;
+  padding: 10px 8px;
+  white-space: nowrap;
+}
+
+th {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--line);
+}
+
+td { border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: none; }
+
+.num { text-align: end; }
+td.num { font-weight: 700; }
+.amt--income { color: var(--income); }
+.amt--expense { color: var(--expense); }
+
+.del {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.del:hover { color: var(--expense); background: var(--expense-bg); }
+
+.footer {
+  text-align: center;
+  padding: 18px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  direction: ltr;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 720px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .summary { grid-template-columns: minmax(0, 1fr); }
+  .stat { flex-direction: row; justify-content: space-between; align-items: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* ---------- Clarity additions ---------- */
+
+.howto {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.howto__step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.howto__step b {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+}
+
+.howto__step em { font-style: normal; font-weight: 700; color: var(--brand); }
+
+.status {
+  min-height: 1.6em;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  color: var(--income);
+}
+
+.status.is-warning {
+  color: #7a4b00;
+  background: #fbefd2;
+  border: 1px solid #eed39a;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+
+.toggle label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  line-height: 1.4;
+}
+
+.toggle label small {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.optional {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.hint {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 720px) {
+  .howto { grid-template-columns: minmax(0, 1fr); }
+}
+
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <span class="author">Eng: Anas Mohamed</span>
+      <label class="month-picker">
+        <span>الشهر</span>
+        <input type="month" id="monthPicker">
+      </label>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <section class="hero">
+      <h1>مصاريفي الشهرية</h1>
+      <p>اكتب كل فلوس دخلتلك أو صرفتها، والصفحة تحسبلك الباقي لوحدها.</p>
+    </section>
+
+    <section class="howto" aria-label="طريقة الاستخدام">
+      <div class="howto__step"><b>1</b><span>اختار: <em>مصروف</em> لو صرفت فلوس، أو <em>دخل</em> لو استلمت فلوس.</span></div>
+      <div class="howto__step"><b>2</b><span>اكتب المبلغ واختار بتصرفه على إيه.</span></div>
+      <div class="howto__step"><b>3</b><span>دوس <em>إضافة</em>، وهتلاقي الأرقام اتحدّثت فوق.</span></div>
+    </section>
+
+    <section class="summary" aria-label="ملخص الشهر">
+      <div class="stat">
+        <span class="stat__label">فلوس دخلتلك</span>
+        <strong class="stat__value stat__value--income" id="totalIncome">0 ج.م</strong>
+      </div>
+      <div class="stat">
+        <span class="stat__label">فلوس صرفتها</span>
+        <strong class="stat__value stat__value--expense" id="totalExpense">0 ج.م</strong>
+      </div>
+      <div class="stat stat--balance" id="balanceCard">
+        <span class="stat__label">الباقي معاك</span>
+        <strong class="stat__value" id="balance">0 ج.م</strong>
+      </div>
+    </section>
+
+    <p class="status" id="saveStatus" role="status"></p>
+
+    <div class="grid">
+
+      <section class="panel" aria-labelledby="formTitle">
+        <h2 id="formTitle">إضافة عملية جديدة</h2>
+        <form id="txForm" novalidate>
+
+          <div class="toggle" role="radiogroup" aria-label="نوع العملية">
+            <input type="radio" name="type" id="typeExpense" value="expense" checked>
+            <label for="typeExpense"><strong>مصروف</strong><small>فلوس طلعت مني</small></label>
+            <input type="radio" name="type" id="typeIncome" value="income">
+            <label for="typeIncome"><strong>دخل</strong><small>فلوس دخلتلي</small></label>
+          </div>
+
+          <label class="field">
+            <span>المبلغ (بالجنيه)</span>
+            <input type="number" id="amount" min="0" step="0.01" inputmode="decimal" placeholder="مثال: 350">
+            <small class="error" id="amountError"></small>
+          </label>
+
+          <label class="field">
+            <span id="categoryLabel">صرفتها على إيه؟</span>
+            <select id="category"></select>
+          </label>
+
+          <label class="field">
+            <span>ملاحظة <em class="optional">(اختياري)</em></span>
+            <input type="text" id="note" maxlength="60" placeholder="مثال: فاتورة النت">
+            <small class="hint">جملة قصيرة تفكرك العملية دي كانت إيه.</small>
+          </label>
+
+          <label class="field">
+            <span>التاريخ</span>
+            <input type="date" id="date">
+          </label>
+
+          <button type="submit" class="btn">إضافة</button>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="chartTitle">
+        <h2 id="chartTitle">فلوسك راحت فين؟</h2>
+        <div class="chart-wrap">
+          <div class="donut" id="donut" role="img" aria-label="رسم دائري للمصاريف"></div>
+          <ul class="legend" id="legend"></ul>
+        </div>
+        <p class="empty" id="chartEmpty" hidden>أول ما تضيف مصروف هيظهر هنا توزيعه على التصنيفات.</p>
+      </section>
+
+    </div>
+
+    <section class="panel" aria-labelledby="listTitle">
+      <div class="panel__head">
+        <h2 id="listTitle">كل العمليات</h2>
+        <div class="tools">
+          <select id="filterCategory" aria-label="فلتر التصنيف">
+            <option value="all">كل التصنيفات</option>
+          </select>
+          <button type="button" class="btn btn--ghost" id="exportBtn">تحميل Excel</button>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>التصنيف</th>
+              <th>ملاحظة</th>
+              <th class="num">المبلغ</th>
+              <th><span class="sr-only">حذف</span></th>
+            </tr>
+          </thead>
+          <tbody id="txBody"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="listEmpty" hidden>مفيش عمليات في الشهر ده لسه. ضيف أول عملية من الفورم.</p>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <span>Eng: Anas Mohamed</span>
+  </footer>
+
+  <script>
+const STORAGE_KEY = "expense-calculator-v1";
+
+const CATEGORIES = {
+  expense: ["أكل", "مواصلات", "فواتير", "ترفيه", "تعليم", "أخرى"],
+  income: ["مرتب", "عمل حر", "هدية", "أخرى"]
+};
+
+const COLORS = {
+  "أكل": "#6b5bd6",
+  "مواصلات": "#d4572f",
+  "فواتير": "#1d9e75",
+  "ترفيه": "#c28a1a",
+  "تعليم": "#2f7fd0",
+  "أخرى": "#7a8a86"
+};
+
+const els = {
+  monthPicker: document.getElementById("monthPicker"),
+  form: document.getElementById("txForm"),
+  amount: document.getElementById("amount"),
+  amountError: document.getElementById("amountError"),
+  category: document.getElementById("category"),
+  categoryLabel: document.getElementById("categoryLabel"),
+  saveStatus: document.getElementById("saveStatus"),
+  note: document.getElementById("note"),
+  date: document.getElementById("date"),
+  filterCategory: document.getElementById("filterCategory"),
+  exportBtn: document.getElementById("exportBtn"),
+  totalIncome: document.getElementById("totalIncome"),
+  totalExpense: document.getElementById("totalExpense"),
+  balance: document.getElementById("balance"),
+  balanceCard: document.getElementById("balanceCard"),
+  donut: document.getElementById("donut"),
+  legend: document.getElementById("legend"),
+  chartEmpty: document.getElementById("chartEmpty"),
+  txBody: document.getElementById("txBody"),
+  listEmpty: document.getElementById("listEmpty")
+};
+
+/* ---------- Storage ---------- */
+
+const WARNING_NO_STORAGE =
+  "الحفظ مش شغال في المتصفح ده، فالأرقام هتختفي لما تقفل الصفحة. " +
+  "غالبًا الملف مفتوح من جوه تطبيق أو معاينة. حمّل الملف وافتحه من Chrome أو Safari.";
+const WARNING_SESSION_ONLY =
+  "الحفظ مؤقت: الأرقام هتفضل لحد ما تقفل التبويب بس. افتح الملف من Chrome أو Safari عشان تتحفظ دايمًا.";
+
+function probeStorage(getter, kind) {
+  try {
+    const store = getter();
+    const key = "__expense_test__";
+    store.setItem(key, "1");
+    store.removeItem(key);
+    return { store: store, kind: kind };
+  } catch (err) {
+    return null;
+  }
+}
+
+const picked =
+  probeStorage(function () { return window.localStorage; }, "local") ||
+  probeStorage(function () { return window.sessionStorage; }, "session");
+
+function loadTransactions() {
+  if (!picked) return [];
+  try {
+    const raw = picked.store.getItem(STORAGE_KEY);
+    const data = raw ? JSON.parse(raw) : [];
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function saveTransactions() {
+  if (!picked) return false;
+  try {
+    picked.store.setItem(STORAGE_KEY, JSON.stringify(transactions));
+    const back = JSON.parse(picked.store.getItem(STORAGE_KEY) || "[]");
+    return back.length === transactions.length;
+  } catch (err) {
+    return false;
+  }
+}
+
+function showStatus(message, isWarning) {
+  els.saveStatus.textContent = message;
+  els.saveStatus.classList.toggle("is-warning", Boolean(isWarning));
+}
+
+function showStorageState() {
+  if (!picked) {
+    showStatus(WARNING_NO_STORAGE, true);
+  } else if (picked.kind === "session") {
+    showStatus(WARNING_SESSION_ONLY, true);
+  } else {
+    showStatus("بياناتك بتتحفظ تلقائيًا على جهازك.", false);
+  }
+}
+
+function reportSave(ok, successMessage) {
+  if (!ok) {
+    showStatus(picked && picked.kind === "session" ? WARNING_SESSION_ONLY : WARNING_NO_STORAGE, true);
+  } else if (picked.kind === "session") {
+    showStatus(WARNING_SESSION_ONLY, true);
+  } else {
+    showStatus(successMessage, false);
+  }
+}
+
+let transactions = loadTransactions();
+
+/* ---------- Helpers ---------- */
+
+function pad(n) {
+  return String(n).padStart(2, "0");
+}
+
+function todayString() {
+  const d = new Date();
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+}
+
+function formatMoney(value) {
+  const rounded = Math.round(value * 100) / 100;
+  return rounded.toLocaleString("en-US", { maximumFractionDigits: 2 }) + " ج.م";
+}
+
+function selectedType() {
+  return document.querySelector('input[name="type"]:checked').value;
+}
+
+function currentMonthTransactions() {
+  const month = els.monthPicker.value;
+  return transactions.filter(function (t) {
+    return t.date.slice(0, 7) === month;
+  });
+}
+
+/* ---------- Form ---------- */
+
+function fillCategorySelect() {
+  const type = selectedType();
+  const list = CATEGORIES[type];
+  els.categoryLabel.textContent = type === "income" ? "الفلوس دي جاية منين؟" : "صرفتها على إيه؟";
+  els.category.innerHTML = "";
+  list.forEach(function (name) {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    els.category.appendChild(opt);
+  });
+}
+
+function fillFilterSelect() {
+  const all = new Set(CATEGORIES.expense.concat(CATEGORIES.income));
+  all.forEach(function (name) {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    els.filterCategory.appendChild(opt);
+  });
+}
+
+function showAmountError(message) {
+  els.amountError.textContent = message;
+  els.amount.classList.toggle("invalid", Boolean(message));
+}
+
+function handleSubmit(event) {
+  event.preventDefault();
+
+  const amount = parseFloat(els.amount.value);
+  if (!amount || amount <= 0) {
+    showAmountError("اكتب مبلغ أكبر من صفر");
+    els.amount.focus();
+    return;
+  }
+  showAmountError("");
+
+  const tx = {
+    id: Date.now(),
+    type: selectedType(),
+    amount: amount,
+    category: els.category.value,
+    note: els.note.value.trim(),
+    date: els.date.value || todayString()
+  };
+
+  transactions.push(tx);
+  const saved = saveTransactions();
+
+  els.monthPicker.value = tx.date.slice(0, 7);
+  els.amount.value = "";
+  els.note.value = "";
+  els.amount.focus();
+
+  render();
+  reportSave(saved, "تمت الإضافة وحُفظت على جهازك.");
+}
+
+function deleteTransaction(id) {
+  transactions = transactions.filter(function (t) {
+    return t.id !== id;
+  });
+  const saved = saveTransactions();
+  render();
+  reportSave(saved, "تم الحذف.");
+}
+
+/* ---------- Rendering ---------- */
+
+function renderSummary(list) {
+  let income = 0;
+  let expense = 0;
+  list.forEach(function (t) {
+    if (t.type === "income") income += t.amount;
+    else expense += t.amount;
+  });
+  const left = income - expense;
+
+  els.totalIncome.textContent = formatMoney(income);
+  els.totalExpense.textContent = formatMoney(expense);
+  els.balance.textContent = formatMoney(left);
+
+  els.balanceCard.classList.toggle("is-positive", left >= 0);
+  els.balanceCard.classList.toggle("is-negative", left < 0);
+}
+
+function renderChart(list) {
+  const totals = {};
+  let sum = 0;
+  list.forEach(function (t) {
+    if (t.type !== "expense") return;
+    totals[t.category] = (totals[t.category] || 0) + t.amount;
+    sum += t.amount;
+  });
+
+  els.legend.innerHTML = "";
+
+  if (sum === 0) {
+    els.donut.style.background = "";
+    els.chartEmpty.hidden = false;
+    return;
+  }
+  els.chartEmpty.hidden = true;
+
+  const entries = Object.keys(totals)
+    .map(function (name) { return { name: name, value: totals[name] }; })
+    .sort(function (a, b) { return b.value - a.value; });
+
+  let start = 0;
+  const stops = entries.map(function (item) {
+    const end = start + (item.value / sum) * 100;
+    const color = COLORS[item.name] || COLORS["أخرى"];
+    const part = color + " " + start.toFixed(2) + "% " + end.toFixed(2) + "%";
+    start = end;
+    return part;
+  });
+  els.donut.style.background = "conic-gradient(" + stops.join(", ") + ")";
+
+  entries.forEach(function (item) {
+    const li = document.createElement("li");
+
+    const label = document.createElement("span");
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    dot.style.background = COLORS[item.name] || COLORS["أخرى"];
+    label.appendChild(dot);
+    label.appendChild(document.createTextNode(item.name));
+
+    const amt = document.createElement("span");
+    amt.className = "amt";
+    amt.textContent = formatMoney(item.value);
+
+    li.appendChild(label);
+    li.appendChild(amt);
+    els.legend.appendChild(li);
+  });
+}
+
+function renderTable(list) {
+  const filter = els.filterCategory.value;
+  const rows = list
+    .filter(function (t) { return filter === "all" || t.category === filter; })
+    .sort(function (a, b) { return b.date.localeCompare(a.date) || b.id - a.id; });
+
+  els.txBody.innerHTML = "";
+  els.listEmpty.hidden = rows.length > 0;
+
+  rows.forEach(function (t) {
+    const tr = document.createElement("tr");
+
+    const tdDate = document.createElement("td");
+    tdDate.textContent = t.date;
+
+    const tdCat = document.createElement("td");
+    tdCat.textContent = t.category;
+
+    const tdNote = document.createElement("td");
+    tdNote.textContent = t.note || "—";
+
+    const tdAmt = document.createElement("td");
+    tdAmt.className = "num " + (t.type === "income" ? "amt--income" : "amt--expense");
+    tdAmt.textContent = (t.type === "income" ? "+ " : "- ") + formatMoney(t.amount);
+
+    const tdDel = document.createElement("td");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "del";
+    btn.textContent = "حذف";
+    btn.setAttribute("aria-label", "حذف عملية " + t.category);
+    btn.addEventListener("click", function () {
+      deleteTransaction(t.id);
+    });
+    tdDel.appendChild(btn);
+
+    tr.append(tdDate, tdCat, tdNote, tdAmt, tdDel);
+    els.txBody.appendChild(tr);
+  });
+}
+
+function render() {
+  const list = currentMonthTransactions();
+  renderSummary(list);
+  renderChart(list);
+  renderTable(list);
+}
+
+/* ---------- Export ---------- */
+
+function exportCsv() {
+  const list = currentMonthTransactions();
+  const header = ["التاريخ", "النوع", "التصنيف", "الوصف", "المبلغ"];
+  const lines = list.map(function (t) {
+    const note = '"' + t.note.replace(/"/g, '""') + '"';
+    const type = t.type === "income" ? "دخل" : "مصروف";
+    return [t.date, type, t.category, note, t.amount].join(",");
+  });
+  const csv = "\uFEFF" + [header.join(",")].concat(lines).join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "expenses-" + els.monthPicker.value + ".csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- Start ---------- */
+
+function init() {
+  const today = todayString();
+  els.date.value = today;
+  els.monthPicker.value = today.slice(0, 7);
+
+  fillCategorySelect();
+  fillFilterSelect();
+
+  document.querySelectorAll('input[name="type"]').forEach(function (radio) {
+    radio.addEventListener("change", fillCategorySelect);
+  });
+  els.form.addEventListener("submit", handleSubmit);
+  els.amount.addEventListener("input", function () { showAmountError(""); });
+  els.monthPicker.addEventListener("change", render);
+  els.filterCategory.addEventListener("change", render);
+  els.exportBtn.addEventListener("click", exportCsv);
+
+  render();
+  showStorageState();
+}
+
+init();
+
+</script>
+</body>
+</html>
